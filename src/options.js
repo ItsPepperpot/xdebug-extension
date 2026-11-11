@@ -37,7 +37,18 @@ document.addEventListener('DOMContentLoaded', () => {
         profileTriggerInput.value = settings.xdebugProfileTrigger;
     });
 
-    chrome.commands.getAll((commands) => {
+    // On macOS, modifier names are shown as their symbols (e.g. "Alt" -> "⌥")
+    const macModifiers = {
+        Alt: '⌥',
+        Option: '⌥',
+        Ctrl: '⌘',
+        Command: '⌘',
+        MacCtrl: '⌃',
+        Shift: '⇧'
+    };
+
+    chrome.runtime.getPlatformInfo(platformInfo => chrome.commands.getAll((commands) => {
+        const isMac = platformInfo.os === 'mac';
         helpDiv.querySelectorAll('p').forEach(p => p.remove());
 
         if (commands.length === 0) {
@@ -55,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newP = document.createElement('p');
             parts.forEach((part, index) => {
                 const newKbd = document.createElement('kbd');
-                newKbd.textContent = part;
+                newKbd.textContent = isMac ? (macModifiers[part] || part) : part;
                 newP.appendChild(newKbd);
                 if (index < parts.length - 1) {
                     newP.appendChild(document.createTextNode(' + '));
@@ -65,5 +76,5 @@ document.addEventListener('DOMContentLoaded', () => {
             newP.appendChild(document.createTextNode(' ' + (description || chrome.i18n.getMessage("options_execute_action"))));
             helpDiv.appendChild(newP);
         }
-    });
+    }));
 });
